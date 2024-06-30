@@ -66,3 +66,32 @@ def face_detector(img, size=0.5):
         roi = cv2.resize(roi, (200, 200))
     return img, roi
 
+# CONFIGURAÇÃO DA CÂMERA NO KIVY
+class KivyCV(Image):
+    def __init__(self, capture, fps, **kwargs):
+        Image.__init__(self, **kwargs)
+        self.capture = capture
+        Clock.schedule_interval(self.update, 1.0 / fps)
+
+    def update(self, dt):
+        ret, frame = self.capture.read()
+        image, face = face_detector(frame)
+        try:
+            face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
+            result = model.predict(face)
+            if result[1] < 500:
+                confidence = int(100 * (1 - (result[1]) / 300))
+                display_string = str(confidence) + '% Confidence it is user'
+            cv2.putText(image, display_string, (100, 120), cv2.FONT_HERSHEY_COMPLEX, 1, (250, 120, 255), 2)
+            if confidence > 75:
+                cv2.putText(image, "IDENTIFICADO", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
+            else:
+                cv2.putText(image, "BLOQUEADO", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
+        except:
+            cv2.putText(image, "NAO CADASTRADO", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
+            pass
+        
+        buf = cv2.flip(image, 0).tostring()
+        image_texture = Texture.create(size=(image.shape[1], image.shape[0]), colorfmt='bgr')
+        image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
+        self.texture = image_texture
