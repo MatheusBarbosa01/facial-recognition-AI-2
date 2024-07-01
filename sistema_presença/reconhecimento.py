@@ -95,3 +95,35 @@ class KivyCV(Image):
         image_texture = Texture.create(size=(image.shape[1], image.shape[0]), colorfmt='bgr')
         image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
         self.texture = image_texture
+
+# TELA DE FUNCIONALIDADE COM A C MERA
+class TelaFuncionalidade(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        layout = FloatLayout()
+
+        titulo = Label(text='RECONHECIMENTO FACIAL',
+                       halign='center', valign='center', size_hint=(0.4, 0.2),
+                       font_size=40, font_name='Roboto-Bold', color=[1, 0, 0, 0.5],
+                       pos_hint={'top': 1, 'center_x': 0.5})
+
+        layout.add_widget(titulo)
+
+        self.capture = cv2.VideoCapture(0)
+        self.camera = KivyCV(capture=self.capture, fps=30)
+        self.camera.size_hint = (1, 1)
+        self.camera.pos_hint = {'x': 0, 'y': 0}
+
+        layout.add_widget(self.camera)
+        self.add_widget(layout)
+
+# CLASSE PRINCIPAL DA APLICAÇÃO KIVY
+class Sistema(App):
+    def build(self):
+        sm = ScreenManager()
+        sm.add_widget(TelaFuncionalidade(name='telaFuncionalidade'))
+        return sm
+
+# EXECUÇÃO DO APLICATIVO
+if __name__ == '__main__':
+    Sistema().run()
